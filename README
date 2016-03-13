@@ -1,0 +1,98 @@
+License
+=======
+
+ Dataplane Automated Testing System
+ Copyright (c) 2015, Intel Corporation.
+
+ This program is free software; you can redistribute it and/or modify it
+ under the terms and conditions of the GNU General Public License,
+ version 2, as published by the Free Software Foundation.
+
+ This program is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ more details.
+
+ You should have received a copy of the GNU General Public License along with
+ this program; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+
+
+Overview
+========
+The DATS project is aimed at characterizing dataplane performance of systems
+that utilize DPDK for network communication.
+DATS consists of a set of scripts written in Python. It uses PROX as
+the network traffic generator and receiver at the Tester side.
+PROX with corresponding configurations is also used to run workloads on
+the System Under Test (SUT).
+
+The dats.py script is the Dataplane Automated Testing System entry point.
+
+All the test scripts are in tests/ and the configuration files that are needed
+by the tests are in the tests/prox-configs/ directory.
+
+By default, all tests are run. Test reports are generated into distinctive
+dats-report-START_TIME/ directories, where the START_TIME suffix represents the
+time when DATS was started, according to the YYYYmmdd_HHMMSS format.
+
+The system requires its dats.cfg config file to run. The example config file
+dats.cfg.example provides comments about all settings.
+
+
+Prerequisites
+=============
+DATS should work with any DPDK version supported by PROX. It has been tested
+using DPDK v2.1.0.
+
+DATS v0.03 requires DPPD-PROX-v021 and the following packages on both the
+Tester and the SUT:
+    ssh
+    killall
+    make
+
+Both the Tester and the SUT should also allow network traffic on port 8474.
+
+The following packages, or their equivalents for the Linux distribution in use,
+are required on the machine where DATS is run:
+    gnuplot
+    docutils
+    rst2pdf
+
+
+Installation
+============
+Install DPDK and DPPD-PROX-v021, both on the Tester (the machine that will
+generate the network traffic) and on the SUT (System Under Test).
+
+DATS can be installed on a third computer, or on the same machine as the Tester.
+
+Create the dats.cfg config file in the DATS directory and, for both the Tester
+and the SUT, specify the respective paths to the top level DPDK and PROX
+directories.
+
+Make sure that you can connect to both the SUT and the Tester using SSH public
+key authentication:
+    $ ssh-copy-id <SUT_User>@<SUT_IP>
+    $ ssh-copy-id <Tester_User>@<Tester_IP>
+
+If either SUT_User or Tester_User is not root, you also need to configure sudo
+on the SUT and/or on the Tester so that this user can sudo without having to
+provide a password.
+
+
+How to run
+==========
+Start from the example config file and adjust it to your setup:
+    $ cp dats.cfg.example dats.cfg
+    $ vi dats.cfg
+
+Run DATS:
+    $ python dats.py
+
+
+Reading the report
+==================
+The main report file is summary.html, generated into the distinctive
+dats-report-START_TIME/ directory.
+

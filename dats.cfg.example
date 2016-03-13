@@ -1,0 +1,83 @@
+; Dataplane Automated Testing System
+; Copyright (c) 2015, Intel Corporation.
+;
+; This program is free software; you can redistribute it and/or modify it
+; under the terms and conditions of the GNU General Public License,
+; version 2, as published by the Free Software Foundation.
+;
+; This program is distributed in the hope that it will be useful, but WITHOUT
+; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+; more details.
+;
+; You should have received a copy of the GNU General Public License along with
+; this program; if not, write to the Free Software Foundation, Inc.,
+; 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+;
+
+[general]
+; Which packet sizes to use when testing. Tests are run for each
+; packet size in turn.
+; Default value: 64,128,256,512,1024,1280,1518
+;pkt_sizes=64,128,256,512,1024,1280,1518
+
+; Which tests to run. This can be overridden by specifying test names
+; on the command line.
+; Default value: all tests in the tests/ directory.
+;tests=01_port_fwd,07_bng
+
+; This setting specifies the percentage of packets sent by the Tester that can
+; be tolerated to be lost, instead of being properly forwarded by the SUT.
+; Note: Although the % symbol must not be provided here, the supplied value is a
+; percentage: a value of 0.001 means 0.001%, that is 1 packet is tolerated to be
+; lost out of 100,000 packets sent by the Tester to the SUT.
+; Default value: 0.0
+;tolerated_loss = 0.001
+
+
+[logging]
+; Valid values are DEBUG, INFO, WARNING, ERROR, CRITICAL.
+level=INFO
+
+; Default value: dats.log
+;file=dats.log
+
+; See https://docs.python.org/2/library/logging.html#logging.Formatter for an
+; explanation on the log format and datefmt and
+; https://docs.python.org/2/library/logging.html#logrecord-attributes for a list
+; of format attributes.
+;format=%(asctime)-15s %(levelname)-8s %(filename)20s:%(lineno)-3d %(message)s
+;datefmt=
+
+; 0 to append to logfile if it exists already, 1 to overwrite.
+;overwrite=1
+
+
+[tester]
+ip=127.0.0.1
+user=root
+
+; Default value: /root/dpdk
+;rte_sdk=/root/dpdk
+
+; Default value: x86_64-native-linuxapp-gcc
+;rte_target=x86_64-ivshmem-linuxapp-gcc
+
+; Default value: /root/prox
+prox_dir=/root/dppd-PROX-v021
+
+
+[sut]
+ip=XXX.XXX.XXX.XXX
+user=root
+
+; Default value: /root/dpdk
+;rte_sdk=/root/dpdk
+
+; Default value: x86_64-native-linuxapp-gcc
+;rte_target=x86_64-ivshmem-linuxapp-gcc
+
+; Default value: /root/prox
+prox_dir=/root/dppd-PROX-v021
+
+
