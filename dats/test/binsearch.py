@@ -1,18 +1,34 @@
+#
 # Dataplane Automated Testing System
-# Copyright (c) 2015, Intel Corporation.
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms and conditions of the GNU General Public License,
-# version 2, as published by the Free Software Foundation.
+# Copyright (c) 2015-2016, Intel Corporation.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-# more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
 #
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+#   * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#   * Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in
+#     the documentation and/or other materials provided with the
+#     distribution.
+#   * Neither the name of Intel Corporation nor the names of its
+#     contributors may be used to endorse or promote products derived
+#     from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
 """
@@ -148,20 +164,24 @@ class BinarySearch(dats.test.base.TestBase):
         adjust = (upper - lower - adjust) / 2
 
         test_value = upper
+
+        # throughput and packet loss from the last successfull test
         successfull_throughput = 0
+        successfull_pkt_loss = 0
         while upper - lower >= precision:
             logging.verbose("New interval [%s, %s), precision: %d",
                 lower, upper, upper - lower)
             logging.info("Testing with value %s", test_value)
 
             self.setup_test(pkt_size=pkt_size, speed=test_value)
-            success, throughput = self.run_test(pkt_size, duration, test_value)
+            success, throughput, pkt_loss = self.run_test(pkt_size, duration, test_value)
             self.teardown_test(pkt_size=pkt_size)
 
             if success:
                 logging.verbose("Success! Increasing lower bound")
                 lower = test_value
                 successfull_throughput = throughput
+                successfull_pkt_loss = pkt_loss
             else:
                 logging.verbose("Failure... Decreasing upper bound")
                 upper = test_value
@@ -176,6 +196,7 @@ class BinarySearch(dats.test.base.TestBase):
             lower_bound=self.lower_bound(pkt_size),
             upper_bound=self.upper_bound(pkt_size),
             measurement=successfull_throughput,
+            pkt_loss=successfull_pkt_loss
         )
 
     @abc.abstractmethod
@@ -190,13 +211,14 @@ class BinarySearch(dats.test.base.TestBase):
         Returns:
             bool. True if test succeeds, False if test fails.
             int throughput in Mpps
+            int total packet loss
         """
         return
 
 
     def generate_report(self, results, prefix, dir):
         # Generate graph of results
-        table = [[ 'Packet size (B)', 'Throughput (Mpps)', 'Theoretical Max (Mpps)' ]]
+        table = [[ 'Packet size (B)', 'Throughput (Mpps)', 'Theoretical Max (Mpps)']]
         for result in results:
             # TODO move formatting to <typeof(measurement)>.__str__
             table.append([
@@ -207,14 +229,15 @@ class BinarySearch(dats.test.base.TestBase):
         dats.plot.bar_plot(table, dir + prefix + 'results.png')
 
         # Generate table
-        table = [['Packet size (B)', 'Throughput (Mpps)', 'Theoretical Max (Mpps)', 'Duration (s)']]
+        table = [['Packet size (B)', 'Throughput (Mpps)', 'Theoretical Max (Mpps)', 'Duration (s)', 'Packet loss (%)']]
         for result in results:
             # TODO move formatting to <typeof(measurement)>.__str__
             table.append([
                 result['pkt_size'],
                 "{:.2f}".format(result['measurement']),
                 "{:.2f}".format(round(utils.line_rate_to_pps(result['pkt_size'], 4) / 1000000, 2)),
-                "{:.1f}".format(round(result['duration'], 1)) ])
+                "{:.1f}".format(round(result['duration'], 1)),
+                "{:.5f}".format(round(result['pkt_loss'], 5)) ])
 
         # Generate reStructuredText report
         report = ''

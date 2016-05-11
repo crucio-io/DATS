@@ -1,18 +1,34 @@
+#
 # Dataplane Automated Testing System
-# Copyright (c) 2015, Intel Corporation.
 #
-# This program is free software; you can redistribute it and/or modify it
-# under the terms and conditions of the GNU General Public License,
-# version 2, as published by the Free Software Foundation.
+# Copyright (c) 2015-2016, Intel Corporation.
+# All rights reserved.
 #
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-# more details.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
 #
-# You should have received a copy of the GNU General Public License along with
-# this program; if not, write to the Free Software Foundation, Inc.,
-# 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+#   * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#   * Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in
+#     the documentation and/or other materials provided with the
+#     distribution.
+#   * Neither the name of Intel Corporation nor the names of its
+#     contributors may be used to endorse or promote products derived
+#     from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
 from time import sleep
@@ -29,9 +45,9 @@ class AccessControlList(dats.test.binsearch.BinarySearch):
 
     This test allows to measure how well the SUT can exploit structures in the list of ACL rules.
     The ACL rules are matched against a 7-tuple of the input packet: the regular 5-tuple and two VLAN tags.
-    
+
     The rules in the rule set allow the packet to be forwarded and the rule set contains a default "match all" rule.
-    
+
     The KPI is measured with the rule set that has a moderate number of rules with moderate similarity between the rules and the fraction of rules that were used.
     The KPI is the number of packets per second for 64 byte packets with an accepted minimal packet loss.
     """
@@ -76,7 +92,7 @@ class AccessControlList(dats.test.binsearch.BinarySearch):
         # and might skew results otherwise.
         rx_stop, tx_stop, tsc_stop = self._tester.tot_stats()
         self._tester.stop_all()
-        
+
         port_stats = self._tester.port_stats([0, 1, 2, 3])
         rx_total = port_stats[6]
         tx_total = port_stats[7]
@@ -92,4 +108,4 @@ class AccessControlList(dats.test.binsearch.BinarySearch):
         pps = (value / 100.0) * utils.line_rate_to_pps(pkt_size, 4)
         logging.verbose("Mpps configured: %f; Mpps effective %f", (pps/1000000.0), mpps)
 
-        return (tx_total - rx_total <= can_be_lost), mpps
+        return (tx_total - rx_total <= can_be_lost), mpps, 100.0*(tx_total - rx_total)/float(tx_total)
