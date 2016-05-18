@@ -34,12 +34,12 @@
 from time import sleep
 import logging
 
-import dats.test.binsearch
+import dats.test.binsearchwlatency
 import dats.utils as utils
 import dats.config as config
-from dats.remote_control import remote_system
 
-class ForwardPacketsNoTouch(dats.test.binsearch.BinarySearch):
+
+class ForwardPacketsNoTouch(dats.test.binsearchwlatency.BinarySearchWithLatency):
     """Port forwarding without touching packets
 
     The application will take packets in from one port and forward them
@@ -60,6 +60,9 @@ class ForwardPacketsNoTouch(dats.test.binsearch.BinarySearch):
 
     def upper_bound(self, pkt_size):
         return 100.0
+
+    def latency_cores(self):
+        return [5, 6, 7, 8]
 
     def setup_class(self):
         self._tester = self.get_remote('tester').run_prox_with_config("gen_all-4.cfg", "-e -t", "Tester")
@@ -85,6 +88,14 @@ class ForwardPacketsNoTouch(dats.test.binsearch.BinarySearch):
         # Get stats before stopping the cores. Stopping cores takes some time
         # and might skew results otherwise.
         rx_stop, tx_stop, tsc_stop = self._tester.tot_stats()
+
+        lat_min, lat_max, lat_avg = self._tester.lat_stats(self.latency_cores())
+        latency = dict(
+            latency_min=lat_min,
+            latency_max=lat_max,
+            latency_avg=lat_avg
+        )
+
         self._tester.stop_all()
 
         port_stats = self._tester.port_stats([0, 1, 2, 3])
@@ -102,4 +113,4 @@ class ForwardPacketsNoTouch(dats.test.binsearch.BinarySearch):
         pps = (value / 100.0) * utils.line_rate_to_pps(pkt_size, 4)
         logging.verbose("Mpps configured: %f; Mpps effective %f", (pps/1000000.0), mpps)
 
-        return (tx_total - rx_total <= can_be_lost), mpps, 100.0*(tx_total - rx_total)/float(tx_total)
+        return (tx_total - rx_total <= can_be_lost), mpps, 100.0*(tx_total - rx_total)/float(tx_total), latency
