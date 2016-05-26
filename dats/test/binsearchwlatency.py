@@ -1,7 +1,6 @@
 #
 # Dataplane Automated Testing System
 #
-# Copyright (c) 2015-2016, Intel Corporation.
 # Copyright (c) 2016, Viosoft Corporation.
 # All rights reserved.
 #
