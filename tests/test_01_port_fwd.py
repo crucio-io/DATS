@@ -42,11 +42,9 @@ import dats.config as config
 
 class ForwardPacketsNoTouch(dats.test.binsearchwlatency.BinarySearchWithLatency):
     """Port forwarding without touching packets
-
     The application will take packets in from one port and forward them
     unmodified to another port.  This use case is not representing any *real*
     use case but it is a good start to do a sanity check of the environment.
-
     The KPI is the number of packets per second for 64 byte packets with an
     accepted minimal packet loss.
     """

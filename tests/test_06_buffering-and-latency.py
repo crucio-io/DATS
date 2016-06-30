@@ -2,6 +2,7 @@
 # Dataplane Automated Testing System
 #
 # Copyright (c) 2015-2016, Intel Corporation.
+# Copyright (c) 2016, Viosoft Corporation.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,13 +35,13 @@
 from time import sleep
 import logging
 
-import dats.test.binsearch
+import dats.test.binsearchwlatency
 import dats.utils as utils
 import dats.config as config
 import dats.plot
-import dats.rstgen as rst
 
-class ImpairDelay(dats.test.binsearch.BinarySearch):
+
+class ImpairDelay(dats.test.binsearch.BinarySearchWithLatency):
     """Buffering and latency
 
     This test measures the impact of the condition when packets get buffered,
@@ -67,6 +68,9 @@ class ImpairDelay(dats.test.binsearch.BinarySearch):
     def upper_bound(self, pkt_size):
         return 100.0
 
+    def latency_cores(self):
+        return [2]
+
     def setup_class(self):
         self._tester = self.get_remote('tester').run_prox_with_config("gen_latency-1.cfg", "-e -t", "Tester")
         self._sut = self.get_remote('sut').run_prox_with_config("handle_latency-1.cfg", "-t", "SUT")
@@ -76,7 +80,6 @@ class ImpairDelay(dats.test.binsearch.BinarySearch):
 
     def run_test(self, pkt_size, duration, value):
         core_tx = 1
-        core_rx = 2
 
         self._tester.stop_all()
         self._tester.reset_stats()
@@ -92,6 +95,12 @@ class ImpairDelay(dats.test.binsearch.BinarySearch):
         # Get stats before stopping the cores. Stopping cores takes some time
         # and might skew results otherwise.
         rx_stop, tx_stop, tsc_stop = self._tester.tot_stats()
+        lat_min, lat_max, lat_avg = self._tester.lat_stats(self.latency_cores())
+        latency = dict(
+            latency_min=lat_min,
+            latency_max=lat_max,
+            latency_avg=lat_avg
+        )
 
         # wait for all packets to arrive
         self._tester.stop([core_tx])
@@ -113,36 +122,4 @@ class ImpairDelay(dats.test.binsearch.BinarySearch):
         pps = (value / 100.0) * utils.line_rate_to_pps(pkt_size, 1)
         logging.verbose("Mpps configured: %f; Mpps effective %f", (pps/1000000.0), mpps)
 
-        return (tx_total - rx_total <= can_be_lost), mpps, 100.0*(tx_total - rx_total)/float(tx_total)
-
-    def generate_report(self, results, prefix, dir):
-        # Generate graph of results
-        table = [[ 'Packet size (B)', 'Throughput (Mpps)', 'Theoretical Max (Mpps)']]
-        for result in results:
-            # TODO move formatting to <typeof(measurement)>.__str__
-            table.append([
-                result['pkt_size'],
-                result['measurement'],
-                round(utils.line_rate_to_pps(result['pkt_size'], 1) / 1000000, 2),
-            ])
-        dats.plot.bar_plot(table, dir + prefix + 'results.png')
-
-        # Generate table
-        table = [['Packet size (B)', 'Throughput (Mpps)', 'Theoretical Max (Mpps)', 'Duration (s)', 'Packet loss (%)']]
-        for result in results:
-            # TODO move formatting to <typeof(measurement)>.__str__
-            table.append([
-                result['pkt_size'],
-                "{:.2f}".format(result['measurement']),
-                "{:.2f}".format(round(utils.line_rate_to_pps(result['pkt_size'], 1) / 1000000, 2)),
-                "{:.1f}".format(round(result['duration'], 1)),
-                "{:.5f}".format(round(result['pkt_loss'], 5)) ])
-
-        # Generate reStructuredText report
-        report = ''
-        report += '.. image:: ' + prefix + 'results.png\n'
-        report += '\n'
-        report += rst.simple_table(table)
-
-        return report
-
+        return (tx_total - rx_total <= can_be_lost), mpps, 100.0*(tx_total - rx_total)/float(tx_total), latency

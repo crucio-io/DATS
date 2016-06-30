@@ -258,48 +258,40 @@ class BinarySearchWithLatency(dats.test.base.TestBase):
         report += rst.simple_table(table)
 
         # latency
+        report += '\n\n'
+        report += rst.section('Latency', '-')
+
         cores = self.latency_cores()
         for core in cores:
-            table = [['Packet size (B)', 'Minimum Latency (ns)', 'Maximum Latency (ns)', 'Average Latency (ns)']]
+            plot_table = [['Packet size (B)', 'Minimum Latency (ns)', 'Maximum Latency (ns)', 'Average Latency (ns)']]
+            data_table = [['Packet size (B)', 'Minimum Latency (ns)', 'Maximum Latency (ns)', 'Average Latency (ns)', 'Duration (s)']]
+
             for result in results:
                 # TODO move formatting to <typeof(measurement)>.__str__
                 latency = result['latency']
                 lat_min = latency['latency_min']
                 lat_max = latency['latency_max']
                 lat_avg = latency['latency_avg']
-                table.append([
+
+                plot_table.append([
                     result['pkt_size'],
                     lat_min[core],
                     lat_max[core],
                     lat_avg[core]])
 
-            dats.plot.bar_plot(table, dir + prefix + 'latency_results_{}.png'.format(core))
-
-        # Generate table
-        table = [['Packet size (B)', 'Core Id', 'Minimum Latency (ns)', 'Maximum Latency (ns)', 'Average Latency (ns)', 'Duration (s)']]
-        for result in results:
-            latency = result['latency']
-            lat_min = latency['latency_min']
-            lat_max = latency['latency_max']
-            lat_avg = latency['latency_avg']
-            for core in cores:
-                table.append([
+                data_table.append([
                     result['pkt_size'],
-                    "{}".format(core),
                     "{:.2f}".format(lat_min[core]),
                     "{:.2f}".format(lat_max[core]),
                     "{:.2f}".format(lat_avg[core]),
                     "{:.1f}".format(round(result['duration'], 1))])
 
-        # Generate reStructuredText report
-        report += '\n\n'
-        report += rst.section('Latency', '-')
+            dats.plot.bar_plot(plot_table, dir + prefix + 'latency_results_{}.png'.format(core))
 
-        for core in cores:
             report += rst.section('On Core {}'.format(core), '-')
             report += '.. image:: ' + prefix + 'latency_results_{}.png\n'.format(core)
-
-        report += '\n'
-        report += rst.simple_table(table)
+            report += '\n'
+            report += rst.simple_table(data_table)
+            report += '\n\n'
 
         return report
