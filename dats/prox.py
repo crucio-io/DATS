@@ -194,6 +194,12 @@ class prox(object):
         for core in cores:
             self.put_data("set value " + str(core) + " 0 " + str(offset) + " " + str(value) + " " + str(length) + "\n")
 
+    def reset_values(self, cores):
+        """ reset values on the remote instance """
+        logging.debug("Set value for core(s) %s", cores)
+        for core in cores:
+            self.put_data("reset values " + str(core) + " 0\n")
+
     def set_speed(self, cores, speed):
         """ set speed on the remote instance """
         logging.debug("Set speed for core(s) %s to %g", cores, speed)

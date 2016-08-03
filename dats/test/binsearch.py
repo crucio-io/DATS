@@ -114,8 +114,8 @@ class BinarySearch(dats.test.base.TestBase):
             if pkt_size < self.min_pkt_size():
                 pkt_size += self.min_pkt_size() - 64
 
-            ### FIXME get duration from config file
-            duration = 5
+            # time duration of a single step
+            duration = float(config.getOption('testDuration'))
             start_time = time.time()
             result = self.run_test_with_pkt_size(pkt_size, duration)
             stop_time = time.time()
@@ -140,7 +140,7 @@ class BinarySearch(dats.test.base.TestBase):
             measurement (long): The maximum value in the interval that yields
             success.
         """
-        precision = 1   # FIXME get from config file
+        precision = float(config.getOption('testPrecision'))
 
         lower = self.lower_bound(pkt_size)
         upper = self.upper_bound(pkt_size)
@@ -215,6 +215,13 @@ class BinarySearch(dats.test.base.TestBase):
         """
         return
 
+    def get_cpu_id(self, cpu_map, core_id, socket_id, is_hyperthread):
+        try:
+            return cpu_map[socket_id][core_id][1 if is_hyperthread else 0]
+        except:
+            raise Exception("Core {}{} on socket {} does not exist" \
+                    .format(str(core_id), "h" if is_hyperthread else "", str(socket_id)))
+
 
     def generate_report(self, results, prefix, dir):
         # Generate graph of results
@@ -224,7 +231,7 @@ class BinarySearch(dats.test.base.TestBase):
             table.append([
                 result['pkt_size'],
                 result['measurement'],
-                round(utils.line_rate_to_pps(result['pkt_size'], 4) / 1000000, 2),
+                round(utils.line_rate_to_pps(result['pkt_size'], self._n_ports) / 1000000, 2),
             ])
         dats.plot.bar_plot(table, dir + prefix + 'results.png')
 
@@ -235,9 +242,10 @@ class BinarySearch(dats.test.base.TestBase):
             table.append([
                 result['pkt_size'],
                 "{:.2f}".format(result['measurement']),
-                "{:.2f}".format(round(utils.line_rate_to_pps(result['pkt_size'], 4) / 1000000, 2)),
+                "{:.2f}".format(round(utils.line_rate_to_pps(result['pkt_size'], self._n_ports) / 1000000, 2)),
                 "{:.1f}".format(round(result['duration'], 1)),
-                "{:.5f}".format(round(result['pkt_loss'], 5)) ])
+                "{:.5f}".format(round(result['pkt_loss'], 5)),
+            ])
 
         # Generate reStructuredText report
         report = ''
@@ -246,4 +254,17 @@ class BinarySearch(dats.test.base.TestBase):
         report += rst.simple_table(table)
 
         return report
+
+    def generate_csv(self, results):
+        csv_string = 'Packet size (B),Throughput (Mpps),Theoretical Max (Mpps),Duration (s),Packet loss (%)\n'
+        
+        # add data lines
+        for result in results:
+            csv_string += "{},{:.2f},{:.2f},{:.1f},{:.5f}\n".format(result['pkt_size'],
+                result['measurement'],
+                round(utils.line_rate_to_pps(result['pkt_size'], 4) / 1000000, 2),
+                round(result['duration'], 1),
+                round(result['pkt_loss'], 5))
+
+        return csv_string
 

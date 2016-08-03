@@ -131,6 +131,7 @@ class TestBase(object):
         # Variable initialization
         self._kpi = None
         self._remotes = {}
+        self._n_ports = 4
 
         return
 

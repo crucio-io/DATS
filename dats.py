@@ -53,7 +53,7 @@ import dats.rstgen as rst
 
 
 ### DATS version
-__version__ = "0.27"
+__version__ = "0.31"
 
 
 def parse_cmdline():
@@ -184,7 +184,7 @@ def main():
     all_tests = dats.test.get_tests(args.tests_dir)
 
     if args.list:
-        print "Tests in directory " + args.tests_dir + ": " + ', '.join(sorted(all_tests.keys()))
+        print "Tests in directory " + args.tests_dir + ": " + ' '.join(sorted(all_tests.keys()))
         sys.exit(0)
 
 
@@ -241,6 +241,12 @@ def main():
     ### Main program
     if not os.path.exists(args.report_dir):
         os.makedirs(args.report_dir)
+
+    # update the parameters.lua file to use the correct CPU socket
+    os.system("sed -i 's/tester_socket_id=.*/tester_socket_id=\"" + str(config.getOption('testerSocketId')) + "\"/' " \
+            + args.tests_dir + "/prox-configs/parameters.lua")
+    os.system("sed -i 's/sut_socket_id=.*/sut_socket_id=\"" + str(config.getOption('sutSocketId')) + "\"/' " \
+            + args.tests_dir + "/prox-configs/parameters.lua")
 
     # Determine which tests to run. These locations are checked in order, the
     # first non-empty result is used:
@@ -363,6 +369,16 @@ def main():
             else:
                 summary_fh.write(test.generate_report(summary['results'], report_prefix, args.report_dir + '/'))
     summary_fh.close()
+
+
+    csv_file = open(args.report_dir + '/' + 'data.csv', 'w')
+    for summary in test_summaries:
+        if 'test' in summary:
+            test = summary['test']
+            csv_file.write(test.short_descr() + "\n")
+            if not isinstance(summary['results'], Exception):
+                csv_file.write(test.generate_csv(summary['results']))
+    csv_file.close()
 
 
     # TODO More output formats

@@ -60,7 +60,7 @@ Prerequisites
 DATS should work with any DPDK version supported by PROX. It has been tested
 using DPDK v2.2.0.
 
-DATS-v027 requires PROX-v027 and the following packages on both the
+DATS-v031 requires PROX-v031 and the following packages on both the
 Tester and the SUT:
     ssh
     killall
@@ -77,7 +77,7 @@ are required on the machine where DATS is run:
 
 Installation
 ============
-Install DPDK and PROX-v027, both on the Tester (the machine that will
+Install DPDK and PROX-v031, both on the Tester (the machine that will
 generate the network traffic) and on the SUT (System Under Test).
 
 DATS can be installed on a third computer, or on the same machine as the Tester.

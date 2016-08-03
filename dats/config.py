@@ -43,6 +43,8 @@ import ConfigParser
 configurationOptions = (
     # dict key          section     key          Default value
     ( 'pktSizes',       'general',  'pkt_sizes', '64,128,256,512,1024,1280,1518' ),
+    ( 'testDuration',   'general',  'test_duration', 5.0 ),
+    ( 'testPrecision',  'general',  'test_precision', 1.0 ),
     ( 'tests',          'general',  'tests',     None ),
     ( 'toleratedLoss',  'general',  'tolerated_loss', 0.0),
 
@@ -57,12 +59,14 @@ configurationOptions = (
     ( 'testerDpdkDir',  'tester',   'rte_sdk',   '/root/dpdk' ),
     ( 'testerDpdkTgt',  'tester',   'rte_target', 'x86_64-native-linuxapp-gcc' ),
     ( 'testerProxDir',  'tester',   'prox_dir',  '/root/prox' ),
+    ( 'testerSocketId', 'tester',   'socket_id',  0 ),
 
     ( 'sutIp',          'sut',      'ip',        None ),
     ( 'sutUser',        'sut',      'user',      'root' ),
     ( 'sutDpdkDir',     'sut',      'rte_sdk',   '/root/dpdk' ),
     ( 'sutDpdkTgt',     'sut',      'rte_target', 'x86_64-native-linuxapp-gcc' ),
     ( 'sutProxDir',     'sut',      'prox_dir',  '/root/prox' ),
+    ( 'sutSocketId',    'sut',      'socket_id',  0 ),
 )
 
 

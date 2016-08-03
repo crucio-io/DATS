@@ -117,10 +117,9 @@ class RampBase(dats.test.base.TestBase):
 
             logging.info("Testing with packet size %d", pkt_size)
             test_value = self.start_interval()
+            duration = float(config.getOption('testDuration'))
 
             while test_value <= 100:
-                # FIXME get duration from config file
-                duration = 5
                 start_time = time.time()
                 result = self.run_test_with_pkt_size(pkt_size, duration, test_value)
                 stop_time = time.time()
@@ -181,11 +180,17 @@ class RampBase(dats.test.base.TestBase):
         """
         return
 
+    def get_cpu_id(self, cpu_map, core_id, socket_id, is_hyperthread):
+        try:
+            return cpu_map[socket_id][core_id][1 if is_hyperthread else 0]
+        except:
+            raise Exception("Core {}{} on socket {} does not exist"
+                            .format(str(core_id), "h" if is_hyperthread else "", str(socket_id)))
+
     def generate_report(self, results, prefix, dir):
         # latency cores
         cores = self.latency_cores()
 
-        pkt_size = 0
         report = ''
 
         # Create a list of pkt_sizes contained in results[]
@@ -238,3 +243,41 @@ class RampBase(dats.test.base.TestBase):
             report += '\n\n'
 
         return report
+
+    def generate_csv(self, results):
+        # latency cores
+        cores = self.latency_cores()
+
+        table_header = 'Packet size (B),Test Value (%),Throughput (Mpps),Theoretical Max (Mpps),Average Latency (ns),Duration (s),Packet loss (%)\n'
+        csv_string = ''
+
+        # Create a list of pkt_sizes contained in results[]
+        pkt_sizes = []
+        for result in results:
+            if result['pkt_size'] not in pkt_sizes:
+                pkt_sizes.append(result['pkt_size'])
+
+        for pkt_size in pkt_sizes:
+            csv_string += table_header
+            for result in results:
+                if (result['pkt_size'] != pkt_size):
+                    continue
+                latency = result['latency']
+                lat_avg = latency['latency_avg']
+                total_avg_lat = 0
+                for core in cores:
+                    total_avg_lat = total_avg_lat + lat_avg[core]
+                total_avg_lat = total_avg_lat / len(cores)
+
+                csv_string += "{},{},{:.2f},{:.2f},{:.2f},{:.1f},{:.5f}\n".format(
+                    result['pkt_size'],
+                    result['test_value'],
+                    result['measurement'],
+                    round(utils.line_rate_to_pps(result['pkt_size'], 4) / 1000000, 2),
+                    total_avg_lat,
+                    round(result['duration'], 1),
+                    round(result['pkt_loss'], 5))
+
+            csv_string += ",\n,\n"
+
+        return csv_string

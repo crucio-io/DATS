@@ -170,14 +170,21 @@ class remote_system:
         thread.start_new_thread(ssh_check_quit, (self, self._user, self._ip, prox_cmd))
         prox = None
         logging.debug("Waiting for PROX to settle")
+        
+        # try connecting to prox for 60s
+        connection_timeout = 60
         while prox is None:
             time.sleep(1)
+            connection_timeout -= 1
             try:
                 prox = self.connect_prox()
             except:
                 pass
             if self._err == True:
                 raise Exception(self._err_str)
+            if connection_timeout == 0:
+                raise Exception("Failed to connect to prox, please check if system " \
+                        + self._ip + " accepts connections on port 8474")
         return prox
 
     def run_prox_with_config(self, configfile, prox_args, sysname="system"):
@@ -235,4 +242,42 @@ class remote_system:
         remote = "/tmp/" + filename
         logging.debug("Config file local path: '%s', remote name: '%s'", local, remote)
         self.scp(local, remote)
+
+    def get_cpu_topology(self):
+        cores = ssh(self._user, self._ip, self._dpdk_dir + "/tools/cpu_layout.py | grep 'cores'")
+        sockets = ssh(self._user, self._ip, self._dpdk_dir + "/tools/cpu_layout.py | grep 'sockets'")
+        topology = ssh(self._user, self._ip, self._dpdk_dir + "/tools/cpu_layout.py | grep 'Core [0-9]' | tr -s ' '")
+
+        # convert sockets info to a list
+        sockets = sockets["out"].split("=")[1].replace("[", "").replace("]", "").replace(" ", "").split(",")
+        sockets = map(int, sockets)
+
+        # convert cores info to a list
+        cores = cores["out"].split("=")[1].replace("[", "").replace("]", "").replace(" ", "").split(",")
+        cores = map(int, cores)
+
+        # convert topolgy info to a dictionary
+        topology = topology["out"].split("\n")
+        for i in range(0, len(topology)):
+            core_map = topology[i].replace("Core", "").replace(" ", "").replace("]", "").split("[")
+            core_map[0] = int(core_map[0])
+            for j in range(1, len(core_map)):
+                core_map[j] = core_map[j].split(",")
+                core_map[j] = map(int, core_map[j])
+            topology[i] = [core_map[0], core_map[1:]]
+        topology = dict(topology)
+
+        # create a map of the CPU topology
+        # the structure is as follows:
+        # { socket_num : { core_num :[hyperthread_num, hyperthread_num]}}
+        topology_map = {}
+        for socket in sockets:
+            socket_map = {} 
+            core_id = 0
+            for core in cores:
+                socket_map[core_id] = topology[core][socket]
+                core_id += 1
+            topology_map[socket] = socket_map
+
+        return topology_map
 
