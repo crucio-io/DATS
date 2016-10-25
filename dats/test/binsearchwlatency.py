@@ -339,3 +339,37 @@ class BinarySearchWithLatency(dats.test.base.TestBase):
             csv_string += ',\n,\n'
 
         return csv_string
+
+    def generate_json(self, results):
+        test_results = dict()
+        index = 0
+        for result in results:
+            result_dict = dict()
+            result_dict['PacketSize(B)'] = "{}".format(result['pkt_size'])
+            result_dict['Throughput(Mpps)'] = "{:.2f}".format(result['measurement'])
+            result_dict['TheoreticalMax(Mpps)'] = "{:.2f}".format(round(utils.line_rate_to_pps(result['pkt_size'], 4) / 1000000, 2))
+            result_dict['Duration(s)'] = "{:.1f}".format(round(result['duration'], 1))
+            result_dict['PacketLoss(%)'] = round(result['pkt_loss'], 5)
+            test_results["pkt_test_" + str(index)] = result_dict
+            index += 1
+
+            cores = self.latency_cores()
+            for core in cores:
+                for result in results:
+                    # TODO move formatting to <typeof(measurement)>.__str__
+                    latency = result['latency']
+                    lat_min = latency['latency_min']
+                    lat_max = latency['latency_max']
+                    lat_avg = latency['latency_avg']
+
+                    lat_result = dict()
+                    lat_result["core"] = "{}".format(core)
+                    lat_result["PacketSize(B)"] = "{}".format(result['pkt_size'])
+                    lat_result['MinimumLatency(ns)'] = "{:.2f}".format(lat_min[core])
+                    lat_result['MaximumLatency(ns)'] = "{:.2f}".format(lat_max[core])
+                    lat_result['AverageLatency(ns)'] = "{:.2f}".format(lat_avg[core])
+                    lat_result['Duration(s)'] = "{:.1f}".format(round(result['duration'], 1))
+
+                    test_results["lat_core_" + str(core)] = lat_result
+
+        return test_results

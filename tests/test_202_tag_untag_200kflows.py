@@ -75,6 +75,9 @@ class MplsTagUntag(dats.test.binsearchwlatency.BinarySearchWithLatency):
         self._tester = self.get_remote('tester').run_prox_with_config("gen_tag_untag-4_200kflows.cfg", "-e -t", "Tester")
         self._sut = self.get_remote('sut').run_prox_with_config("handle_tag_untag-4.cfg", "-t", "SUT")
 
+    def teardown_class(self):
+        pass
+
     def latency_cores(self):
         return [
             self.get_cpu_id(self._tester_cpu_map, 5, int(config.getOption("testerSocketId")), False),
@@ -82,9 +85,6 @@ class MplsTagUntag(dats.test.binsearchwlatency.BinarySearchWithLatency):
             self.get_cpu_id(self._tester_cpu_map, 7, int(config.getOption("testerSocketId")), False),
             self.get_cpu_id(self._tester_cpu_map, 8, int(config.getOption("testerSocketId")), False),
         ]
-
-    def teardown_class(self):
-        pass
 
     def run_test(self, pkt_size, duration, value):
         cores_tagged = [

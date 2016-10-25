@@ -2,7 +2,6 @@
 # Dataplane Automated Testing System
 #
 # Copyright (c) 2015-2016, Intel Corporation.
-# Copyright (c) 2016, Viosoft Corporation.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,12 +34,13 @@
 from time import sleep
 import logging
 
-import dats.test.binsearchwlatency
+import dats.test.binsearch
 import dats.utils as utils
 import dats.config as config
+from dats.remote_control import remote_system
 
 
-class AccessControlList(dats.test.binsearchwlatency.BinarySearchWithLatency):
+class AccessControlList(dats.test.binsearch.BinarySearch):
     """ACL (access control list)
 
     This test allows to measure how well the SUT can exploit structures in the list of ACL rules.
@@ -62,14 +62,6 @@ class AccessControlList(dats.test.binsearchwlatency.BinarySearchWithLatency):
 
     def upper_bound(self, pkt_size):
         return 100.0
-
-    def latency_cores(self):
-        return [
-            self.get_cpu_id(self._tester_cpu_map, 5, int(config.getOption("testerSocketId")), False),
-            self.get_cpu_id(self._tester_cpu_map, 6, int(config.getOption("testerSocketId")), False),
-            self.get_cpu_id(self._tester_cpu_map, 7, int(config.getOption("testerSocketId")), False),
-            self.get_cpu_id(self._tester_cpu_map, 8, int(config.getOption("testerSocketId")), False),
-        ]
 
     def setup_class(self):
         self._tester_cpu_map = self.get_remote('tester').get_cpu_topology()
@@ -107,12 +99,6 @@ class AccessControlList(dats.test.binsearchwlatency.BinarySearchWithLatency):
         # Get stats before stopping the cores. Stopping cores takes some time
         # and might skew results otherwise.
         rx_stop, tx_stop, tsc_stop = self._tester.tot_stats()
-        lat_min, lat_max, lat_avg = self._tester.lat_stats(self.latency_cores())
-        latency = dict(
-            latency_min=lat_min,
-            latency_max=lat_max,
-            latency_avg=lat_avg
-        )
         self._tester.stop_all()
 
         port_stats = self._tester.port_stats([0, 1, 2, 3])
@@ -130,4 +116,4 @@ class AccessControlList(dats.test.binsearchwlatency.BinarySearchWithLatency):
         pps = (value / 100.0) * utils.line_rate_to_pps(pkt_size, 4)
         logging.verbose("Mpps configured: %f; Mpps effective %f", (pps/1000000.0), mpps)
 
-        return (tx_total - rx_total <= can_be_lost), mpps, 100.0*(tx_total - rx_total)/float(tx_total), latency
+        return (tx_total - rx_total <= can_be_lost), mpps, 100.0*(tx_total - rx_total)/float(tx_total)

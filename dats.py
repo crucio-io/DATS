@@ -4,6 +4,7 @@
 # Dataplane Automated Testing System
 #
 # Copyright (c) 2015-2016, Intel Corporation.
+# Copyright (c) 2016, Viosoft Corporation.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -42,6 +43,7 @@ import os
 from datetime import datetime
 import re
 import imp
+import json
 
 import dats.config as config
 from dats.doc import res_table
@@ -53,7 +55,7 @@ import dats.rstgen as rst
 
 
 ### DATS version
-__version__ = "0.31"
+__version__ = "0.33"
 
 
 def parse_cmdline():
@@ -171,6 +173,7 @@ def execute_inf_commands(sut_inf_commands, sut_information):
 def main():
     print "Dataplane Automated Testing System, version " + __version__
     print "Copyright (c) 2015-2016, Intel Corporation. All rights reserved."
+    print "Copyright (c) 2016, Viosoft Corporation. All rights reserved."
     print
 
     args = parse_cmdline()
@@ -380,6 +383,15 @@ def main():
                 csv_file.write(test.generate_csv(summary['results']))
     csv_file.close()
 
+    json_file = open(args.report_dir + '/' + 'summary.json', 'w')
+    results_dict = dict()
+    for summary in test_summaries:
+        if 'test' in summary:
+            test = summary['test']
+            if not isinstance(summary['results'], Exception):
+                results_dict[test.short_descr()] = test.generate_json(summary['results'])
+    json_file.write(json.dumps(results_dict))
+    json_file.close()
 
     # TODO More output formats
     os.system('rst2html ' + args.report_dir + '/' + 'summary.rst ' + args.report_dir + '/' + 'summary.html')

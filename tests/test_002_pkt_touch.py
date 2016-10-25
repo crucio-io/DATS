@@ -62,14 +62,6 @@ class ForwardPacketsTouch(dats.test.binsearchwlatency.BinarySearchWithLatency):
     def upper_bound(self, pkt_size):
         return 100.0
 
-    def latency_cores(self):
-        return [
-            self.get_cpu_id(self._tester_cpu_map, 5, int(config.getOption("testerSocketId")), False),
-            self.get_cpu_id(self._tester_cpu_map, 6, int(config.getOption("testerSocketId")), False),
-            self.get_cpu_id(self._tester_cpu_map, 7, int(config.getOption("testerSocketId")), False),
-            self.get_cpu_id(self._tester_cpu_map, 8, int(config.getOption("testerSocketId")), False),
-        ]
-
     def setup_class(self):
         self._tester_cpu_map = self.get_remote('tester').get_cpu_topology()
         self.get_remote('tester').copy_extra_config("parameters.lua")
@@ -79,6 +71,14 @@ class ForwardPacketsTouch(dats.test.binsearchwlatency.BinarySearchWithLatency):
 
     def teardown_class(self):
         pass
+
+    def latency_cores(self):
+        return [
+            self.get_cpu_id(self._tester_cpu_map, 5, int(config.getOption("testerSocketId")), False),
+            self.get_cpu_id(self._tester_cpu_map, 6, int(config.getOption("testerSocketId")), False),
+            self.get_cpu_id(self._tester_cpu_map, 7, int(config.getOption("testerSocketId")), False),
+            self.get_cpu_id(self._tester_cpu_map, 8, int(config.getOption("testerSocketId")), False),
+        ]
 
     def run_test(self, pkt_size, duration, value):
         cores = [

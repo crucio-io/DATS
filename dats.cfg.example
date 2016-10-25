@@ -40,7 +40,7 @@
 ; Which tests to run. This can be overridden by specifying test names
 ; on the command line.
 ; Default value: all tests in the tests/ directory.
-;tests=001_port_fwd,101_bng
+;tests=01_port_fwd,101_bng
 
 ; This setting specifies the percentage of packets sent by the Tester that can
 ; be tolerated to be lost, instead of being properly forwarded by the SUT.
@@ -111,3 +111,4 @@ prox_dir=/root/dppd-PROX-v021
 
 ; Default value: 0
 ;socket_id = 1
+

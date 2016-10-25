@@ -281,3 +281,38 @@ class RampBase(dats.test.base.TestBase):
             csv_string += ",\n,\n"
 
         return csv_string
+
+    def generate_json(self, results):
+        cores = self.latency_cores()
+        test_results = dict()
+
+        # Create a list of pkt_sizes contained in results[]
+        pkt_sizes = []
+        for result in results:
+            if result['pkt_size'] not in pkt_sizes:
+                pkt_sizes.append(result['pkt_size'])
+
+        index = 0
+        for pkt_size in pkt_sizes:
+            for result in results:
+                if (result['pkt_size'] != pkt_size):
+                    continue
+                latency = result['latency']
+                lat_avg = latency['latency_avg']
+                total_avg_lat = 0
+                for core in cores:
+                    total_avg_lat = total_avg_lat + lat_avg[core]
+                total_avg_lat = total_avg_lat / len(cores)
+
+                result_dict = dict()
+                result_dict['PacketSize(B)'] = "{}".format(result['pkt_size'])
+                result_dict['TestValue(%)'] = "{}".format(result['test_value'])
+                result_dict['Throughput(Mpps)'] = "{:.2f}".format(result['measurement'])
+                result_dict['TheoreticalMax(Mpps)'] = "{:.2f}".format(round(utils.line_rate_to_pps(result['pkt_size'], 4) / 1000000, 2))
+                result_dict['AverageLatency(ns)'] = total_avg_lat
+                result_dict['Duration(s)'] = "{:.1f}".format(round(result['duration'], 1))
+                result_dict['PacketLoss(%)'] = round(result['pkt_loss'], 5)
+                test_results["rmp_test_" + str(index)] = result_dict
+                index += 1
+
+        return test_results

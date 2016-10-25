@@ -40,7 +40,6 @@ import dats.utils as utils
 import dats.config as config
 import dats.plot
 
-
 class ImpairDelay(dats.test.binsearchwlatency.BinarySearchWithLatency):
     """Buffering and latency
 
@@ -68,11 +67,6 @@ class ImpairDelay(dats.test.binsearchwlatency.BinarySearchWithLatency):
     def upper_bound(self, pkt_size):
         return 100.0
 
-    def latency_cores(self):
-        return [
-            self.get_cpu_id(self._tester_cpu_map, 2, int(config.getOption("testerSocketId")), False)
-        ]
-
     def setup_class(self):
         self._n_ports = 1
         self._tester_cpu_map = self.get_remote('tester').get_cpu_topology()
@@ -83,6 +77,11 @@ class ImpairDelay(dats.test.binsearchwlatency.BinarySearchWithLatency):
 
     def teardown_class(self):
         pass
+
+	def latency_cores(self):
+		return [
+            self.get_cpu_id(self._tester_cpu_map, 2, int(config.getOption("testerSocketId")), False)
+        ]
 
     def run_test(self, pkt_size, duration, value):
         core_tx = self.get_cpu_id(self._tester_cpu_map, 1, int(config.getOption("testerSocketId")), False)
