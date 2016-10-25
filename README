@@ -4,6 +4,7 @@ License
  Dataplane Automated Testing System
 
  Copyright (c) 2015-2016, Intel Corporation.
+ Copyright (c) 2016, Viosoft Corporation.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -110,4 +111,3 @@ Reading the report
 ==================
 The main report file is summary.html, generated into the distinctive
 dats-report-START_TIME/ directory.
-
