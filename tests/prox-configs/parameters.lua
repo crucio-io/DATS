@@ -40,8 +40,10 @@ sut_mac1="00 00 00 00 00 02"
 sut_mac2="00 00 00 00 00 03"
 sut_mac3="00 00 00 00 00 04"
 
-qinq_tag="0xa888"
-qinq_tag_inline="88 a8"
+--qinq_tag="0xa888"
+--qinq_tag_inline="88 a8"
+qinq_tag="0x0081"
+qinq_tag_inline="81 00"
 
 tester_socket_id="0"
 sut_socket_id="0"
