@@ -78,8 +78,8 @@ class ImpairDelay(dats.test.binsearchwlatency.BinarySearchWithLatency):
     def teardown_class(self):
         pass
 
-	def latency_cores(self):
-		return [
+    def latency_cores(self):
+	return [
             self.get_cpu_id(self._tester_cpu_map, 2, int(config.getOption("testerSocketId")), False)
         ]
 
