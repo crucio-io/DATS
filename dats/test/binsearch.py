@@ -254,6 +254,19 @@ class BinarySearch(dats.test.base.TestBase):
         report += rst.simple_table(table)
 
         return report
+    def generate_json(self, results):
+        test_results = dict()
+        index = 0
+        for result in results:
+            result_dict = dict()
+            result_dict['PacketSize(B)'] = "{}".format(result['pkt_size'])
+            result_dict['Throughput(Mpps)'] = "{:.2f}".format(result['measurement'])
+            result_dict['TheoreticalMax(Mpps)'] = "{:.2f}".format(round(utils.line_rate_to_pps(result['pkt_size'], 4) / 1000000, 2))
+            result_dict['Duration(s)'] = "{:.1f}".format(round(result['duration'], 1))
+            result_dict['PacketLoss(%)'] = round(result['pkt_loss'], 5)
+            test_results["pkt_test_" + str(index)] = result_dict
+            index += 1
+        return test_results
 
     def generate_csv(self, results):
         csv_string = 'Packet size (B),Throughput (Mpps),Theoretical Max (Mpps),Duration (s),Packet loss (%)\n'
