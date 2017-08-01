@@ -171,8 +171,8 @@ class remote_system:
         prox = None
         logging.debug("Waiting for PROX to settle")
         
-        # try connecting to prox for 60s
-        connection_timeout = 60
+        # try connecting to prox for 120s
+        connection_timeout = 120
         while prox is None:
             time.sleep(1)
             connection_timeout -= 1
